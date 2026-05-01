@@ -1,0 +1,517 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+/* ============================================================
+   HERO — Fullscreen canvas + right-side narrative slides
+   ============================================================ */
+
+/* ── Loading screen ── */
+.hero-loader {
+  position: fixed;
+  inset: 0;
+  background: #060606;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.hero-loader-label {
+  font-family: 'Georgia', serif;
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  margin: 0 0 2.5rem;
+}
+.hero-loader-track {
+  width: min(380px, 74vw);
+  height: 1px;
+  background: #1c1c1c;
+  overflow: hidden;
+}
+.hero-loader-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9a7520, #D4AF37, #f2d98a);
+  transition: width 0.12s linear;
+}
+.hero-loader-pct {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: #2e2e2e;
+  margin-top: 1rem;
+}
+
+/* ── Scroll container (GSAP pins this) ── */
+.hero-scroll-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;           /* GSAP pin stretches this via end:'+=500%' */
+  overflow: hidden;
+  background: #000;
+}
+
+/* ── Canvas: fixed, fullscreen, behind everything ── */
+.hero-canvas-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: 0;
+}
+
+/* ── Gradient overlay: left edge solid black, right transparent ── */
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    /* right panel darkening */
+    linear-gradient(to left, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 38%, transparent 62%),
+    /* bottom vignette */
+    linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 35%);
+}
+
+/* ── Brand label — top left ── */
+.hero-brand {
+  position: absolute;
+  top: 2.4rem;
+  left: 3.5rem;
+  z-index: 5;
+}
+.hero-brand-eyebrow {
+  font-family: 'Georgia', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.hero-brand-rule {
+  width: 2.5rem;
+  height: 1px;
+  background: #D4AF37;
+  opacity: 0.4;
+}
+
+/* ── Slides column — right 40% ── */
+.hero-slides-col {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 100%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 0 5vw 0 3vw;
+  pointer-events: none;
+}
+
+/* Each slide is stacked on top of each other */
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 5vw 0 3vw;
+  /* GSAP animates opacity / y / filter */
+}
+.slide-eyebrow {
+  font-family: 'Georgia', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  margin-bottom: 1.2rem;
+  display: block;
+}
+.slide-headline {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-weight: 400;
+  color: #D4AF37;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.5rem;
+}
+.slide-body {
+  font-family: system-ui, sans-serif;
+  font-size: clamp(0.82rem, 1.1vw, 0.95rem);
+  color: #8a7e6e;
+  line-height: 1.8;
+  max-width: 30ch;
+  margin: 0 0 2rem;
+}
+.slide-rule {
+  width: 2rem;
+  height: 1px;
+  background: #D4AF37;
+  opacity: 0.3;
+}
+
+/* ── Scroll cue ── */
+.hero-scroll-cue {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+.hero-scroll-cue span {
+  font-family: system-ui, sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #3a3a3a;
+}
+.hero-scroll-line {
+  width: 1px;
+  height: 2.5rem;
+  background: linear-gradient(to bottom, #D4AF37, transparent);
+  animation: scrollLinePulse 2s ease-in-out infinite;
+}
+@keyframes scrollLinePulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50%       { opacity: 0.8; transform: scaleY(1.1); }
+}
+
+/* ============================================================
+   MENU — Dark luxury, single-column vertical list
+   ============================================================ */
+.menu-section {
+  background: #000;
+  padding: 6rem 5vw 10rem;
+  position: relative;
+  z-index: 20;
+}
+
+.menu-header {
+  max-width: 900px;
+  margin: 0 auto 5rem;
+}
+.menu-eyebrow {
+  font-family: 'Georgia', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  display: block;
+  margin-bottom: 1rem;
+}
+.menu-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  font-weight: 400;
+  color: #D4AF37;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0 0 1rem;
+}
+.menu-subtitle {
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: #454545;
+  letter-spacing: 0.05em;
+  margin: 0 0 2rem;
+}
+.menu-header-rule {
+  width: 3rem;
+  height: 1px;
+  background: #D4AF37;
+  opacity: 0.4;
+}
+
+/* Single-column list — reset <ul> */
+.menu-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Each card is a wide horizontal strip */
+.menu-card {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 3rem 2.5rem;
+  border-bottom: 1px solid #111;
+  /* initial state — GSAP animates in */
+  opacity: 0;
+  transition: background 0.3s ease;
+  cursor: default;
+}
+.menu-card:first-child {
+  border-top: 1px solid #111;
+}
+.menu-card:hover {
+  background: rgba(212, 175, 55, 0.03);
+}
+
+/* Circular image */
+.menu-card-img-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  flex-shrink: 0;
+}
+.menu-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.menu-card:hover .menu-card-img {
+  transform: scale(1.06);
+}
+/* Gold ring — shown on hover */
+.menu-card-img-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.menu-card:hover .menu-card-img-ring {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+/* Body text */
+.menu-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.menu-card-meta {
+  margin-bottom: 0.5rem;
+}
+.menu-card-tag {
+  font-family: system-ui, sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+}
+.menu-card-name {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 400;
+  color: #e2cfa0;
+  margin: 0 0 0.6rem;
+  letter-spacing: 0.01em;
+}
+.menu-card-desc {
+  font-family: system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: #3e3e3e;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 55ch;
+}
+
+/* Right: price + CTA */
+.menu-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.menu-card-price {
+  font-family: 'Georgia', serif;
+  font-size: 1.1rem;
+  color: #D4AF37;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.menu-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: transparent;
+  padding: 0.65rem 1.3rem;
+  cursor: pointer;
+  transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease;
+  white-space: nowrap;
+}
+.menu-card-btn:hover {
+  background: #D4AF37;
+  color: #000;
+  border-color: #D4AF37;
+}
+.menu-card-btn-arrow {
+  display: inline-block;
+  transition: transform 0.22s ease;
+}
+.menu-card-btn:hover .menu-card-btn-arrow {
+  transform: translateX(3px);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.site-footer {
+  background: #000;
+  border-top: 1px solid #111;
+  padding: 3rem 5vw;
+}
+.footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.footer-brand {
+  font-family: 'Georgia', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  opacity: 0.7;
+}
+.footer-copy {
+  font-family: system-ui, sans-serif;
+  font-size: 0.72rem;
+  color: #2a2a2a;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
