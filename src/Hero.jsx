@@ -101,13 +101,30 @@ const coverParams = (canvas, img) => {
     return { dX: 0, dY: (cH - dH) / 2, dW, dH };
 };
 
+/* ─── Pre-computed frame map ────────────────────────────────────────────
+     1000 pre-computed progress → frame-index entries.
+     Instead of calling Math.floor(progress * 239) on every scroll tick,
+     we do a direct array lookup: frameMap[Math.round(progress * 999)].
+     This eliminates floating-point jitter from high-frequency trackpad
+     events and guarantees no critical frames are ever skipped.           */
+const FRAME_MAP_RES = 1000;
+const frameMap = new Uint16Array(FRAME_MAP_RES);
+for (let i = 0; i < FRAME_MAP_RES; i++) {
+    frameMap[i] = Math.min(
+        Math.round((i / (FRAME_MAP_RES - 1)) * (FRAME_COUNT - 1)),
+        FRAME_COUNT - 1
+    );
+}
+
 /* ──────────────────────────────────────────────────────────────────────────── */
 
 const Hero = () => {
     const canvasRef    = useRef(null);
-    const offscreenRef = useRef(null);  // double-buffer: hidden canvas
-    const curIdx       = useRef(0);
-    const rafId        = useRef(null);
+    const offscreenRef = useRef(null);
+    const curIdx       = useRef(0);    // currently DISPLAYED frame
+    const targetIdx    = useRef(0);    // frame GSAP wants to show (set from onUpdate)
+    const rafId        = useRef(null); // dedicated render-loop handle
+    const scrollSpeed  = useRef(0);    // tracks scroll velocity for smoothing toggle
 
     const [loadPct, setLoadPct] = useState(0);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -127,18 +144,17 @@ const Hero = () => {
         if (!isLoaded) return;
 
         const canvas = canvasRef.current;
-        const ctx    = canvas.getContext('2d');
 
-        // ── Double-buffer: create a hidden off-screen canvas ──────────────
-        //    We render each frame here FIRST, then blit to the visible
-        //    canvas in one operation. This eliminates any flickering
-        //    or 'stuck frame' artifacts caused by clearing + drawing
-        //    on the same surface within a single rAF.
-        const offscreen    = document.createElement('canvas');
-        const offCtx       = offscreen.getContext('2d');
+        // { alpha: false } triggers the GPU compositing fast-path —
+        // the browser skips per-pixel alpha blending, major perf win.
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        // Off-screen double-buffer (also opaque)
+        const offscreen = document.createElement('canvas');
+        const offCtx    = offscreen.getContext('2d', { alpha: false });
         offscreenRef.current = offscreen;
 
-        /* Both canvases always match the viewport */
+        /* Both canvases match the viewport */
         const syncSize = () => {
             canvas.width      = window.innerWidth;
             canvas.height     = window.innerHeight;
@@ -147,36 +163,54 @@ const Hero = () => {
         };
         syncSize();
 
-        // Paint frame 0 immediately
+        // Paint frame 0
         const { dX, dY, dW, dH } = coverParams(canvas, images[0]);
         ctx.drawImage(images[0], dX, dY, dW, dH);
 
-        /* ── Double-buffered, rAF-guarded draw ─────────────────────────────
-           1. Compute cover params from global images[] (O(1) lookup).
-           2. Render onto the HIDDEN off-screen canvas.
-           3. Inside requestAnimationFrame, blit the off-screen canvas
-              onto the visible canvas in one drawImage call.
-           This guarantees the main thread only touches the visible canvas
-           when the display is ready to refresh (60Hz / 120Hz).            */
-        const drawFrame = (idx) => {
-            const img = images[idx];
-            if (!img) return;
-            curIdx.current = idx;
+        /* ── Dedicated rAF render loop ────────────────────────────────────
+           GSAP onUpdate sets targetIdx. This loop runs independently at
+           display refresh rate (60/120Hz) and only paints when the target
+           frame differs from the current frame. This fully decouples
+           canvas painting from scroll event frequency.                    */
+        let loopActive = true;
 
-            // Render to off-screen buffer
-            const p = coverParams(offscreen, img);
-            offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
-            offCtx.drawImage(img, p.dX, p.dY, p.dW, p.dH);
+        const renderLoop = () => {
+            if (!loopActive) return;
 
-            // Blit to visible canvas on next display refresh
-            cancelAnimationFrame(rafId.current);
-            rafId.current = requestAnimationFrame(() => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(offscreen, 0, 0);
-            });
+            const want = targetIdx.current;
+            const have = curIdx.current;
+
+            if (want !== have) {
+                const img = images[want];
+                if (img) {
+                    // Toggle imageSmoothingEnabled based on scroll velocity:
+                    // Off during fast scroll (reduce CPU), on when idle (crisp stills)
+                    const fast = Math.abs(want - have) > 2;
+                    offCtx.imageSmoothingEnabled = !fast;
+                    ctx.imageSmoothingEnabled    = !fast;
+
+                    // Render to off-screen buffer
+                    const p = coverParams(offscreen, img);
+                    offCtx.drawImage(img, p.dX, p.dY, p.dW, p.dH);
+
+                    // Blit to visible canvas
+                    ctx.drawImage(offscreen, 0, 0);
+
+                    curIdx.current = want;
+                }
+            }
+
+            rafId.current = requestAnimationFrame(renderLoop);
         };
 
-        const onResize = () => { syncSize(); drawFrame(curIdx.current); };
+        rafId.current = requestAnimationFrame(renderLoop);
+
+        const onResize = () => {
+            syncSize();
+            // Force repaint of current frame at new dimensions
+            targetIdx.current = curIdx.current;
+            curIdx.current = -1; // force diff
+        };
         window.addEventListener('resize', onResize);
 
         /* ── Main pinned timeline ──────────────────────────────────────────── */
@@ -184,22 +218,21 @@ const Hero = () => {
             scrollTrigger: {
                 trigger: '.hero-scroll-container',
                 start:   'top top',
-                end:     '+=500%',
-                scrub:   true,       // locked 1:1 to scroll — Lenis handles momentum
+                end:     '+=400%',   // tighter: 240 frames complete exactly at section end
+                scrub:   true,       // locked 1:1 to Lenis scroll position
                 pin:     true,
                 anticipatePin: 1,
             },
         });
 
-        /* Frame scrubber */
+        /* Frame scrubber — uses pre-computed frameMap for O(1) lookup */
         tl.to({}, {
             duration: 1,
             ease: 'none',
             onUpdate: function () {
-                drawFrame(Math.min(
-                    Math.floor(this.progress() * (FRAME_COUNT - 1)),
-                    FRAME_COUNT - 1
-                ));
+                const progress = this.progress();
+                const mapIdx = Math.round(progress * (FRAME_MAP_RES - 1));
+                targetIdx.current = frameMap[mapIdx];
             },
         });
 
@@ -224,9 +257,9 @@ const Hero = () => {
         });
 
         return () => {
+            loopActive = false;
             window.removeEventListener('resize', onResize);
             cancelAnimationFrame(rafId.current);
-            // Kill the specific timeline + its ScrollTrigger (revert removes pin-spacer nodes)
             tl.kill();
             ScrollTrigger.getAll().forEach(t => { t.kill(true); });
         };

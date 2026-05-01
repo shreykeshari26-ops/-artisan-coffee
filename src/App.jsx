@@ -58,10 +58,10 @@ function App() {
   /* ── Lenis: reinitialize on every route change ────────────────────── */
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
+      lerp: 0.08,             // low lerp = heavy inertia smoothing for trackpad
+      wheelMultiplier: 1.0,   // no velocity amplification from wheel/trackpad
       touchMultiplier: 1.5,
+      smoothWheel: true,
     });
     lenisRef.current = lenis;
 
