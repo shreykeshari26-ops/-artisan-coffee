@@ -236,6 +236,13 @@ const Hero = () => {
             },
         });
 
+        /* ── Brand overlay: fade out + scale down in first 8% of scroll ─── */
+        tl.fromTo('.hero-brand-splash',
+            { opacity: 1, scale: 1, filter: 'blur(0px)' },
+            { opacity: 0, scale: 0.88, filter: 'blur(12px)', ease: 'power2.in', duration: 0.08 },
+            0   // starts at timeline position 0
+        );
+
         /* ── Slide panels: blur + y entrance / exit ─────────────────────── */
         // 4 slides × 25% each, timed across the full timeline (0 → 1)
         SLIDES.forEach((slide, i) => {
@@ -287,6 +294,17 @@ const Hero = () => {
 
                 {/* Full-screen darkening gradient so text stays legible */}
                 <div className="hero-gradient-overlay" />
+
+                {/* ── Premium brand splash — right side, fades on scroll ── */}
+                <div className="hero-brand-splash">
+                    <h1 className="hero-brand-splash-title">
+                        ARTISAN<br />COFFEE<br />WORKS
+                    </h1>
+                    <div className="hero-brand-splash-rule" />
+                    <p className="hero-brand-splash-tagline">
+                        Your Daily Mood Booster
+                    </p>
+                </div>
 
                 {/* Branding — top-left, always visible */}
                 <div className="hero-brand">
