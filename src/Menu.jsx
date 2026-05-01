@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -20,6 +21,7 @@ const products = [
 
 const Menu = () => {
     const cardsRef = useRef([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         cardsRef.current.forEach((card, i) => {
@@ -79,10 +81,19 @@ const Menu = () => {
                             <p className="menu-card-desc">{item.desc}</p>
                         </div>
 
-                        {/* Right side: price + CTA */}
                         <div className="menu-card-right">
                             <span className="menu-card-price">{item.price}</span>
-                            <button className="menu-card-btn">
+                            <button
+                                className="menu-card-btn"
+                                onClick={() => {
+                                    // Kill GSAP ScrollTrigger pins BEFORE React Router
+                                    // swaps the component tree — prevents removeChild crash
+                                    ScrollTrigger.getAll().forEach(t => t.kill(true));
+                                    navigate('/order', {
+                                        state: { name: item.name, price: item.price, img: item.img }
+                                    });
+                                }}
+                            >
                                 Add to Order
                                 <span className="menu-card-btn-arrow">→</span>
                             </button>

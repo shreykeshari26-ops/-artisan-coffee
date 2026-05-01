@@ -226,7 +226,9 @@ const Hero = () => {
         return () => {
             window.removeEventListener('resize', onResize);
             cancelAnimationFrame(rafId.current);
-            ScrollTrigger.getAll().forEach(t => t.kill());
+            // Kill the specific timeline + its ScrollTrigger (revert removes pin-spacer nodes)
+            tl.kill();
+            ScrollTrigger.getAll().forEach(t => { t.kill(true); });
         };
     }, [isLoaded]);
 
