@@ -5,8 +5,59 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const FRAME_COUNT = 240;
+const BATCH_SIZE   = 20;    // concurrent fetches per batch — saturates HTTP/2 without overwhelming the decoder
+
 const frameSrc = (i) =>
     `/frames/ezgif-frame-${(i + 1).toString().padStart(3, '0')}.jpg`;
+
+// ─── Global image buffer ────────────────────────────────────────────────
+const images = [];
+
+// ─── Single-frame blob pre-fetch ─────────────────────────────────────────
+//     fetch → blob → ObjectURL → img.decode()
+//     cache: 'force-cache' tells the browser to use a cached response
+//     if available — so on repeat visits, loading is near-instant.
+const prefetchFrame = (index) =>
+    fetch(frameSrc(index), { cache: 'force-cache' })
+        .then(res => res.blob())
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.src = url;
+            return new Promise((resolve) => {
+                if (img.decode) {
+                    img.decode().then(() => { images[index] = img; resolve(index); });
+                } else {
+                    img.onload = () => { images[index] = img; resolve(index); };
+                }
+            });
+        });
+
+// ─── Batched loader: resolves BATCH_SIZE frames concurrently, then moves
+//     to the next batch. This keeps 20 connections saturated at all times
+//     without flooding the browser’s connection pool or image decoder.
+const loadAllFrames = (onProgress) => {
+    images.length = 0;
+    let totalLoaded = 0;
+
+    const loadBatch = async (startIdx) => {
+        const end = Math.min(startIdx + BATCH_SIZE, FRAME_COUNT);
+        const batch = [];
+        for (let i = startIdx; i < end; i++) {
+            batch.push(
+                prefetchFrame(i).then((idx) => {
+                    totalLoaded++;
+                    onProgress(Math.round((totalLoaded / FRAME_COUNT) * 100));
+                    return idx;
+                })
+            );
+        }
+        await Promise.all(batch);
+        if (end < FRAME_COUNT) await loadBatch(end);
+    };
+
+    return loadBatch(0);
+};
 
 // Narrative copy for the right-side overlay panels
 const SLIDES = [
@@ -36,69 +87,93 @@ const SLIDES = [
     },
 ];
 
-/* ─── Object-fit cover for canvas ──────────────────────────────────────────── */
-const drawCover = (ctx, img) => {
-    const cW = ctx.canvas.width;
-    const cH = ctx.canvas.height;
+/* ─── Object-fit: cover math ───────────────────────────────────────────────── */
+const coverParams = (canvas, img) => {
+    const cW = canvas.width;
+    const cH = canvas.height;
     const iR = img.width / img.height;
     const cR = cW / cH;
-    let dW, dH, dX, dY;
-    if (iR > cR) { dH = cH; dW = cH * iR; dX = (cW - dW) / 2; dY = 0; }
-    else          { dW = cW; dH = cW / iR; dX = 0; dY = (cH - dH) / 2; }
-    ctx.clearRect(0, 0, cW, cH);
-    ctx.drawImage(img, dX, dY, dW, dH);
+    if (iR > cR) {
+        const dH = cH, dW = cH * iR;
+        return { dX: (cW - dW) / 2, dY: 0, dW, dH };
+    }
+    const dW = cW, dH = cW / iR;
+    return { dX: 0, dY: (cH - dH) / 2, dW, dH };
 };
 
 /* ──────────────────────────────────────────────────────────────────────────── */
 
 const Hero = () => {
-    const canvasRef  = useRef(null);
-    const images     = useRef([]);
-    const curIdx     = useRef(0);
-    const rafId      = useRef(null);
+    const canvasRef    = useRef(null);
+    const offscreenRef = useRef(null);  // double-buffer: hidden canvas
+    const curIdx       = useRef(0);
+    const rafId        = useRef(null);
 
     const [loadPct, setLoadPct] = useState(0);
-    const [ready,   setReady]   = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    /* ── Phase 1: pre-load ALL 240 frames ─────────────────────────────────── */
+    /* ── Phase 1: Batched blob pre-fetch ─────────────────────────────────
+         Loads 20 frames concurrently, waits for that batch to finish,
+         then fires the next 20. This keeps the connection pool fully
+         saturated without the head-of-line blocking that occurs when
+         240 fetches are fired simultaneously.                              */
     useEffect(() => {
-        let loaded = 0;
-        images.current = new Array(FRAME_COUNT);
-
-        for (let i = 0; i < FRAME_COUNT; i++) {
-            const img = new Image();
-            img.src = frameSrc(i);
-            img.onload = img.onerror = () => {
-                images.current[i] = img;
-                loaded++;
-                setLoadPct(Math.round((loaded / FRAME_COUNT) * 100));
-                if (loaded === FRAME_COUNT) setReady(true);
-            };
-        }
+        loadAllFrames(setLoadPct).then(() => setIsLoaded(true));
     }, []);
 
-    /* ── Phase 2: GSAP — runs ONLY after loading === false ────────────────── */
+    /* ── Phase 2: GSAP — runs ONLY after isLoaded === true ─────────────────
+         ScrollTrigger is never created until Promise.all has resolved.      */
     useEffect(() => {
-        if (!ready) return;
+        if (!isLoaded) return;
 
         const canvas = canvasRef.current;
         const ctx    = canvas.getContext('2d');
 
-        /* Canvas always fills the full viewport */
+        // ── Double-buffer: create a hidden off-screen canvas ──────────────
+        //    We render each frame here FIRST, then blit to the visible
+        //    canvas in one operation. This eliminates any flickering
+        //    or 'stuck frame' artifacts caused by clearing + drawing
+        //    on the same surface within a single rAF.
+        const offscreen    = document.createElement('canvas');
+        const offCtx       = offscreen.getContext('2d');
+        offscreenRef.current = offscreen;
+
+        /* Both canvases always match the viewport */
         const syncSize = () => {
-            canvas.width  = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width      = window.innerWidth;
+            canvas.height     = window.innerHeight;
+            offscreen.width   = window.innerWidth;
+            offscreen.height  = window.innerHeight;
         };
         syncSize();
-        drawCover(ctx, images.current[0]);
 
-        /* rAF-batched draw — at most one paint per browser frame */
+        // Paint frame 0 immediately
+        const { dX, dY, dW, dH } = coverParams(canvas, images[0]);
+        ctx.drawImage(images[0], dX, dY, dW, dH);
+
+        /* ── Double-buffered, rAF-guarded draw ─────────────────────────────
+           1. Compute cover params from global images[] (O(1) lookup).
+           2. Render onto the HIDDEN off-screen canvas.
+           3. Inside requestAnimationFrame, blit the off-screen canvas
+              onto the visible canvas in one drawImage call.
+           This guarantees the main thread only touches the visible canvas
+           when the display is ready to refresh (60Hz / 120Hz).            */
         const drawFrame = (idx) => {
-            const img = images.current[idx];
+            const img = images[idx];
             if (!img) return;
             curIdx.current = idx;
+
+            // Render to off-screen buffer
+            const p = coverParams(offscreen, img);
+            offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+            offCtx.drawImage(img, p.dX, p.dY, p.dW, p.dH);
+
+            // Blit to visible canvas on next display refresh
             cancelAnimationFrame(rafId.current);
-            rafId.current = requestAnimationFrame(() => drawCover(ctx, img));
+            rafId.current = requestAnimationFrame(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(offscreen, 0, 0);
+            });
         };
 
         const onResize = () => { syncSize(); drawFrame(curIdx.current); };
@@ -109,8 +184,8 @@ const Hero = () => {
             scrollTrigger: {
                 trigger: '.hero-scroll-container',
                 start:   'top top',
-                end:     '+=500%',   // 5 × 100vh = 500vh of pinned scroll room
-                scrub:   1.5,
+                end:     '+=500%',
+                scrub:   true,       // locked 1:1 to scroll — Lenis handles momentum
                 pin:     true,
                 anticipatePin: 1,
             },
@@ -153,13 +228,13 @@ const Hero = () => {
             cancelAnimationFrame(rafId.current);
             ScrollTrigger.getAll().forEach(t => t.kill());
         };
-    }, [ready]);
+    }, [isLoaded]);
 
     /* ── Render ─────────────────────────────────────────────────────────── */
     return (
         <>
-            {/* ── Loading screen — blocks scroll until every frame is cached ── */}
-            {!ready && (
+            {/* ── Loading screen — blocks scroll until every onload has fired ── */}
+            {!isLoaded && (
                 <div className="hero-loader">
                     <p className="hero-loader-label">Preparing your experience</p>
                     <div className="hero-loader-track">
