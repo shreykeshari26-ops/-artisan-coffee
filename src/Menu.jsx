@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -22,6 +22,18 @@ const products = [
 const Menu = () => {
     const cardsRef = useRef([]);
     const navigate = useNavigate();
+    const [quantities, setQuantities] = useState(() =>
+        Object.fromEntries(products.map((item) => [item.id, 1]))
+    );
+
+    const updateQuantity = (id, delta) => {
+        setQuantities((current) => ({
+            ...current,
+            [id]: Math.max(1, (current[id] ?? 1) + delta),
+        }));
+    };
+
+    const parsePrice = (price) => Number(price.replace(/[^\d.]/g, '')) || 0;
 
     useEffect(() => {
         cardsRef.current.forEach((card, i) => {
@@ -83,18 +95,49 @@ const Menu = () => {
 
                         <div className="menu-card-right">
                             <span className="menu-card-price">{item.price}</span>
+                            <div className="menu-card-quantity" aria-label={`${item.name} quantity selector`}>
+                                <button
+                                    type="button"
+                                    className="menu-qty-btn"
+                                    onClick={() => updateQuantity(item.id, -1)}
+                                    aria-label={`Decrease ${item.name} quantity`}
+                                >
+                                    −
+                                </button>
+                                <span className="menu-qty-value">{quantities[item.id] ?? 1}</span>
+                                <button
+                                    type="button"
+                                    className="menu-qty-btn"
+                                    onClick={() => updateQuantity(item.id, 1)}
+                                    aria-label={`Increase ${item.name} quantity`}
+                                >
+                                    +
+                                </button>
+                            </div>
                             <button
                                 className="menu-card-btn"
                                 onClick={() => {
                                     // Kill GSAP ScrollTrigger pins BEFORE React Router
                                     // swaps the component tree — prevents removeChild crash
                                     ScrollTrigger.getAll().forEach(t => t.kill(true));
+                                    const quantity = quantities[item.id] ?? 1;
+                                    const unitPrice = parsePrice(item.price);
+                                    const totalPrice = Number((unitPrice * quantity).toFixed(2));
                                     navigate('/order', {
-                                        state: { name: item.name, price: item.price, img: item.img }
+                                        state: {
+                                            coffee_item: {
+                                                ...item,
+                                                unit_price: unitPrice,
+                                            },
+                                            quantity,
+                                            total_price: totalPrice,
+                                            price: item.price,
+                                            img: item.img,
+                                        },
                                     });
                                 }}
                             >
-                                Add to Order
+                                Order Now
                                 <span className="menu-card-btn-arrow">→</span>
                             </button>
                         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -124,8 +124,6 @@ const Hero = () => {
     const curIdx       = useRef(0);    // currently DISPLAYED frame
     const targetIdx    = useRef(0);    // frame GSAP wants to show (set from onUpdate)
     const rafId        = useRef(null); // dedicated render-loop handle
-    const scrollSpeed  = useRef(0);    // tracks scroll velocity for smoothing toggle
-
     const [loadPct, setLoadPct] = useState(0);
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -218,9 +216,10 @@ const Hero = () => {
             scrollTrigger: {
                 trigger: '.hero-scroll-container',
                 start:   'top top',
-                end:     '+=400%',   // tighter: 240 frames complete exactly at section end
-                scrub:   true,       // locked 1:1 to Lenis scroll position
+                end:     '+=2000',   // complete the hero animation before releasing the next section
+                scrub:   1.5,
                 pin:     true,
+                pinSpacing: true,
                 anticipatePin: 1,
             },
         });

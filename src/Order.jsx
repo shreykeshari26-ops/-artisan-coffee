@@ -1,26 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
+import { createClient } from '@supabase/supabase-js';
 
-/* ── Generate a short order ID ──────────────────────────────────────────── */
-const genOrderId = () =>
-    'ACW-' + Date.now().toString(36).toUpperCase().slice(-5) +
-    Math.random().toString(36).toUpperCase().slice(2, 5);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null;
+
+const parsePrice = (value) => Number(String(value ?? '').replace(/[^\d.]/g, '')) || 0;
+const formatRupees = (value) => `₹ ${Number(value || 0).toFixed(2)}`;
 
 const Order = () => {
     const { state } = useLocation();
     const navigate  = useNavigate();
 
-    const [name,    setName]    = useState('');
-    const [mobile,  setMobile]  = useState('');
-    const [done,    setDone]    = useState(false);
+    const [name, setName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [done, setDone] = useState(false);
     const [orderId, setOrderId] = useState('');
+    const [submitError, setSubmitError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     /* Scroll to top when page mounts */
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
+    const selectedItem = state?.coffee_item
+        ? state.coffee_item
+        : state?.name
+            ? { name: state.name, price: state.price, img: state.img }
+            : null;
+    const quantity = Number(state?.quantity ?? 1);
+    const totalPrice = Number(state?.total_price ?? parsePrice(state?.price));
+
     /* If someone lands on /order without state, redirect home */
-    if (!state?.name) {
+    if (!selectedItem?.name) {
         return (
             <div className="order-page">
                 <div className="order-empty">
@@ -33,12 +48,44 @@ const Order = () => {
         );
     }
 
-    const { name: coffeeName, price, img } = state;
+    const coffeeName = selectedItem.name;
+    const img = selectedItem.img;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name.trim() || !mobile.trim()) return;
-        setOrderId(genOrderId());
+
+        if (!supabase) {
+            setSubmitError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+            return;
+        }
+
+        setSubmitError('');
+        setIsSubmitting(true);
+
+        const orderPayload = {
+            coffee_item: coffeeName,
+            quantity,
+            total_price: totalPrice,
+            customer_name: name.trim(),
+            mobile_number: mobile.trim(),
+        };
+
+        const { data, error } = await supabase
+            .from('orders')
+            .insert([orderPayload])
+            .select()
+            .single();
+
+        setIsSubmitting(false);
+
+        if (error) {
+            setSubmitError(error.message);
+            return;
+        }
+
+        const serialNo = data?.id ?? data?.order_id ?? data?.serial_no ?? '';
+        setOrderId(String(serialNo));
         setDone(true);
     };
 
@@ -55,14 +102,11 @@ const Order = () => {
             <div className="order-page">
                 <div className="order-success-card">
                     <div className="order-success-icon">✓</div>
-                    <h2 className="order-success-title">Order Confirmed</h2>
-                    <p className="order-success-id">
-                        Order ID: <span>{orderId}</span>
-                    </p>
+                    <h2 className="order-success-title">Order #{orderId} Confirmed</h2>
 
                     <div className="order-success-summary">
                         <span className="order-success-coffee">{coffeeName}</span>
-                        <span className="order-success-price">{price}</span>
+                        <span className="order-success-price">{formatRupees(totalPrice)}</span>
                     </div>
 
                     <div className="order-success-divider" />
@@ -102,7 +146,8 @@ const Order = () => {
                     <div className="order-item-details">
                         <span className="order-item-eyebrow">Your Selection</span>
                         <h2 className="order-item-name">{coffeeName}</h2>
-                        <span className="order-item-price">{price}</span>
+                        <span className="order-item-price">{formatRupees(totalPrice)}</span>
+                        <span className="order-item-quantity">Qty: {quantity}</span>
                     </div>
                     <div className="order-item-divider" />
 
@@ -111,7 +156,7 @@ const Order = () => {
                         <span className="order-qr-label">Scan to Pay</span>
                         <div className="order-qr-canvas">
                             <QRCodeCanvas
-                                value={`upi://pay?pa=artisancoffee@upi&pn=Artisan Coffee&am=${price.replace(/[^\d.]/g, '')}&tn=Order-${coffeeName}`}
+                                value={`upi://pay?pa=artisancoffee@upi&pn=Artisan Coffee&am=${totalPrice.toFixed(2)}&tn=Order-${coffeeName}`}
                                 size={160}
                                 bgColor="#000000"
                                 fgColor="#D4AF37"
@@ -157,10 +202,11 @@ const Order = () => {
                         />
                     </div>
 
-                    <button type="submit" className="order-submit-btn">
-                        Complete Order
+                    <button type="submit" className="order-submit-btn" disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Complete Order'}
                         <span className="order-submit-arrow">→</span>
                     </button>
+                    {submitError && <p className="order-form-error">{submitError}</p>}
                 </form>
             </div>
         </div>

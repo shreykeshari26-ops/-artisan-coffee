@@ -58,6 +58,11 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+section {
+  overflow: hidden;
 }
 
 #root {
@@ -166,7 +171,7 @@ code {
 
 /* ── Canvas: fixed, fullscreen, behind everything ── */
 .hero-canvas-fixed {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
@@ -354,11 +359,73 @@ code {
 }
 
 /* ============================================================
+   BEAN STORY — sticky cinematic scroller
+   ============================================================ */
+.bean-story {
+  position: relative;
+  min-height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+
+.bean-story-stage {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bean-story-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 0;
+}
+
+.bean-story-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.74) 72%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.26) 40%, rgba(0, 0, 0, 0.66));
+}
+
+.bean-story-text-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.bean-story-block {
+  position: absolute;
+  text-align: center;
+  max-width: 900px;
+  padding: 0 2rem;
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #D4AF37;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 1);
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+/* ============================================================
    MENU — Dark luxury, single-column vertical list
    ============================================================ */
 .menu-section {
   background: #000;
-  padding: 6rem 5vw 10rem;
+  padding: 0 5vw 10rem;
   position: relative;
   z-index: 20;
 }
@@ -509,6 +576,40 @@ code {
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
+.menu-card-quantity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.03);
+}
+.menu-qty-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: transparent;
+  color: #D4AF37;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.menu-qty-btn:hover {
+  background: #D4AF37;
+  color: #000;
+  transform: translateY(-1px);
+}
+.menu-qty-value {
+  min-width: 1.1rem;
+  text-align: center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: #e2cfa0;
+}
 .menu-card-btn {
   display: flex;
   align-items: center;
@@ -658,6 +759,15 @@ code {
   color: #D4AF37;
   letter-spacing: 0.04em;
 }
+.order-item-quantity {
+  display: block;
+  margin-top: 0.45rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6f675d;
+}
 .order-item-divider {
   width: 100%;
   height: 1px;
@@ -773,6 +883,17 @@ code {
 }
 .order-submit-btn:hover .order-submit-arrow {
   transform: translateX(3px);
+}
+.order-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.order-form-error {
+  margin: 0.2rem 0 0;
+  font-family: system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: #d4af37;
+  letter-spacing: 0.04em;
 }
 
 /* ── Success card ── */

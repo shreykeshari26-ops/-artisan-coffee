@@ -1,10 +1,11 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import Hero from './Hero';
+import BeanStory from './BeanStory';
 import Menu from './Menu';
 import Order from './Order';
 
@@ -15,17 +16,8 @@ function HomePage() {
   return (
     <>
       <Hero />
-
-      <div style={{
-        width: '100%',
-        height: '8rem',
-        background: '#000',
-        position: 'relative',
-        zIndex: 20,
-      }} />
-
+      <BeanStory />
       <Menu />
-
       <footer className="site-footer">
         <div className="footer-inner">
           <span className="footer-brand">Artisan Coffee Works</span>
