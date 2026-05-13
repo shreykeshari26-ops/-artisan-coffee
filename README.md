@@ -1,17 +1,28 @@
-# React + Vite
+# Artisan Coffee Works ☕
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An intelligent, multi-page digital experience built with a focus on premium UI/UX and agentic development workflows. This project explores the integration of Generative AI into modern web applications.
 
-Currently, two official plugins are available:
+## 🚀 Features
+*   **Cinematic Experience**: High-fidelity video backgrounds with floating facts powered by Remotion.
+*   **Responsive Multi-Page Design**: Seamless navigation between Home, Menu, Bean Story, and Contact pages.
+*   **Interactive Components**: Custom-built glassmorphism UI elements including a functional WhatsApp-integrated contact form.
+*   **Performance Focused**: Built with React, Vite, and GSAP for smooth, scroll-triggered animations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🤖 Agentic Workflow
+This project was developed using a "Zero-Footprint, Utility-First" personalization strategy. I utilized custom **Agent Skills** (located in `.agents/skills`) to:
+*   Maintain brand consistency (Deep Espresso & Warm Cream palette).
+*   Orchestrate complex UI component generation without relying on heavy external CSS frameworks.
+*   Automate dependency management and environment configuration.
 
-## React Compiler
+## 🛠️ Tech Stack
+*   **Frontend**: React.js, Vite
+*   **Styling**: Vanilla CSS (Custom Glassmorphism)
+*   **Animation**: GSAP, Remotion
+*   **Integrations**: WhatsApp Universal Links
+*   **Development Tools**: Antigravity IDE, GitHub
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
+## 👨‍💻 About the Developer
+I am **Shreyansh Keshari**, a B.Tech IT student at G.L. Bajaj Institute of Technology and Management. I am currently exploring the AI space, specifically focusing on building scalable systems that combine backend logic with clean, user-centric design.
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 |
