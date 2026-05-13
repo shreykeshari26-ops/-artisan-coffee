@@ -1,0 +1,433 @@
+/* --- NAVBAR --- */
+.site-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(212, 175, 55, 0.02);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  transition: background 0.3s ease;
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 5vw;
+}
+
+.navbar-brand {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  color: #D4AF37;
+  font-size: 1.2rem;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  font-weight: bold;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: #F5E6D3;
+  text-decoration: none;
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: #D4AF37;
+}
+
+.nav-btn {
+  color: #000;
+  background: #D4AF37;
+  text-decoration: none;
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.2rem;
+  border-radius: 99px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+.nav-btn:hover {
+  opacity: 0.9;
+}
+
+/* --- COMMON SECTIONS --- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 5vw;
+}
+
+.section-eyebrow {
+  font-family: 'Georgia', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.section-title {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 400;
+  color: #F5E6D3;
+  margin: 0 0 1rem;
+}
+
+.section-rule {
+  width: 40px;
+  height: 2px;
+  background: #D4AF37;
+  margin-bottom: 3rem;
+  opacity: 0.5;
+}
+
+/* --- HOME: FEATURES --- */
+.features-section {
+  padding: 8rem 0;
+  background: #1B1411;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-icon {
+  color: #D4AF37;
+  margin-bottom: 0.5rem;
+}
+
+.feature-item h3 {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.5rem;
+  color: #F5E6D3;
+  margin: 0;
+}
+
+.feature-item p {
+  color: rgba(245, 230, 211, 0.7);
+  font-family: system-ui, sans-serif;
+  line-height: 1.7;
+}
+
+/* --- HOME: WHY CHOOSE US (GLASSMORPHISM) --- */
+.why-choose-us {
+  padding: 8rem 0;
+  background: #080604;
+  position: relative;
+}
+
+.glass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.glass-card {
+  background: rgba(212, 175, 55, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 3rem 2rem;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: translateY(-5px);
+}
+
+.glass-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px dashed rgba(212, 175, 55, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.glass-number {
+  color: #D4AF37;
+  font-family: monospace;
+  font-size: 1.2rem;
+}
+
+.glass-card h3 {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.4rem;
+  color: #F5E6D3;
+  margin: 0 0 1rem;
+}
+
+.glass-card p {
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* --- HOME: VISIT US (SPLIT LAYOUT) --- */
+.visit-us {
+  padding: 8rem 0;
+  background: #1B1411;
+}
+
+.split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.split-content {
+  padding: 0 5vw;
+}
+
+.visit-desc {
+  color: rgba(245, 230, 211, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 3rem;
+  max-width: 400px;
+}
+
+.contact-info .info-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.info-icon {
+  color: #D4AF37;
+  margin-top: 0.2rem;
+}
+
+.info-item strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: #F5E6D3;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.info-item p {
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.6;
+}
+
+.hours h3 {
+  font-family: 'Playfair Display', serif;
+  color: #F5E6D3;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.hours ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 300px;
+}
+
+.hours li {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(245, 230, 211, 0.7);
+  margin-bottom: 0.5rem;
+  border-bottom: 1px dotted rgba(212, 175, 55, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.split-image {
+  height: 100%;
+  min-height: 600px;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80') center/cover;
+  position: relative;
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(27, 20, 17, 0.3);
+}
+
+@media (max-width: 900px) {
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+  .split-image {
+    min-height: 400px;
+    margin-top: 4rem;
+  }
+}
+
+/* --- CONTACT PAGE --- */
+.contact-page {
+  padding: 12rem 0 8rem;
+  background: #000;
+  min-height: 100vh;
+}
+
+.contact-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-desc {
+  color: rgba(245, 230, 211, 0.7);
+  line-height: 1.8;
+}
+
+.contact-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #D4AF37;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 1rem;
+  color: #F5E6D3;
+  font-family: system-ui, sans-serif;
+  border-radius: 4px;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.glass-btn {
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  color: #D4AF37;
+  padding: 1rem 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-family: system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.glass-btn:hover {
+  background: #D4AF37;
+  color: #000;
+}
+
+.glass-btn.rounded-full {
+  border-radius: 999px;
+}
+
+/* --- STEAM ANIMATION --- */
+.steam-container {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.steam-svg {
+  width: 100%;
+  height: 100%;
+  filter: blur(2px);
+}
+
+.steam-path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: steamRise 3s infinite ease-out;
+}
+
+.steam-path-1 { animation-delay: 0s; }
+.steam-path-2 { animation-delay: 1s; }
+.steam-path-3 { animation-delay: 2s; }
+
+@keyframes steamRise {
+  0% { stroke-dashoffset: 100; opacity: 0; transform: translateY(10px); }
+  20% { opacity: 0.8; }
+  80% { stroke-dashoffset: 0; opacity: 0; transform: translateY(-20px); }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* Adjust page padding for navbar */
+.page-wrapper {
+  padding-top: 80px;
+}
+.hero-scroll-container {
+  margin-top: -80px; /* Offset the wrapper padding for fullscreen hero */
+}
+.bean-story {
+  margin-top: -80px;
+}

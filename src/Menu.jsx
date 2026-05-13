@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import SteamAnimation from './SteamAnimation';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -80,6 +81,7 @@ const Menu = () => {
                     >
                         {/* Circular image */}
                         <div className="menu-card-img-wrap">
+                            <SteamAnimation />
                             <img src={item.img} alt={item.name} className="menu-card-img" />
                             <div className="menu-card-img-ring" />
                         </div>

@@ -1,3 +1,4 @@
+@import './new-styles.css';
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -396,12 +397,14 @@ code {
 }
 
 .bean-story-text-wrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 20;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  text-align: center;
+  width: 100%;
+  pointer-events: none;
 }
 
 .bean-story-block {
@@ -409,14 +412,13 @@ code {
   text-align: center;
   max-width: 900px;
   padding: 0 2rem;
-  font-family: 'Playfair Display', 'Georgia', serif;
+  font-family: 'Arial', sans-serif;
   font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.3;
   letter-spacing: -0.02em;
-  color: #D4AF37;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 1);
+  color: #FFD700;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
   opacity: 0;
-  visibility: hidden;
   will-change: transform, opacity, filter;
 }
 

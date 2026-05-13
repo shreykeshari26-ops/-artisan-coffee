@@ -4,31 +4,14 @@ import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import Hero from './Hero';
+import Navbar from './Navbar';
+import Home from './Home';
 import BeanStory from './BeanStory';
 import Menu from './Menu';
 import Order from './Order';
+import Contact from './Contact';
 
 gsap.registerPlugin(ScrollTrigger);
-
-/* ── Home page: Hero + Menu + Footer ──────────────────────────────────── */
-function HomePage() {
-  return (
-    <>
-      <Hero />
-      <BeanStory />
-      <Menu />
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <span className="footer-brand">Artisan Coffee Works</span>
-          <p className="footer-copy">
-            © 2026 Artisan Coffee Works. Crafted by Shreyansh Keshari.
-          </p>
-        </div>
-      </footer>
-    </>
-  );
-}
 
 /* ── App: Lenis + routing ─────────────────────────────────────────────── */
 function App() {
@@ -74,11 +57,25 @@ function App() {
   }, [location.pathname]);
 
   return (
-    <main style={{ background: '#000', margin: 0 }}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/order" element={<Order />} />
-      </Routes>
+    <main style={{ background: '#000', margin: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navbar />
+      <div className="page-wrapper" style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/story" element={<BeanStory />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/order" element={<Order />} />
+        </Routes>
+      </div>
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <span className="footer-brand">Artisan Coffee Works</span>
+          <p className="footer-copy">
+            © 2026 Artisan Coffee Works. Crafted by Shreyansh Keshari.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
