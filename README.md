@@ -9,7 +9,7 @@ An intelligent, multi-page digital experience built with a focus on premium UI/U
 *   **Performance Focused**: Built with React, Vite, and GSAP for smooth, scroll-triggered animations.
 
 ## 🤖 Agentic Workflow
-This project was developed using a "Zero-Footprint, Utility-First" personalization strategy. I utilized custom **Agent Skills** (located in `.agents/skills`) to:
+This project was developed using a "Zero-Footprint, Utility-First" personalization strategy. I utilized custom **Agent Skills** to:
 *   Maintain brand consistency (Deep Espresso & Warm Cream palette).
 *   Orchestrate complex UI component generation without relying on heavy external CSS frameworks.
 *   Automate dependency management and environment configuration.
@@ -24,7 +24,7 @@ This project was developed using a "Zero-Footprint, Utility-First" personalizati
 ## 👨‍💻 About the Developer
 I am **Shreyansh Keshari**, a B.Tech IT student at G.L. Bajaj Institute of Technology and Management. I am currently exploring the AI space, specifically focusing on building scalable systems that combine backend logic with clean, user-centric design.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+(https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 |
 <img width="1792" height="1027" alt="Screenshot 2026-05-02 at 2 13 24 AM" src="https://github.com/user-attachments/assets/20aee356-eac5-4a0f-8077-0f3c138652b2" />
 |
